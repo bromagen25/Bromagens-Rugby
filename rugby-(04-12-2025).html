@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rugby (04/12/2025) Photo Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom styles for black background and red text */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Black background */
+            color: #FF0000; /* Red text */
+        }
+        .gallery-image {
+            transition: transform 0.2s ease-in-out;
+        }
+        .gallery-image:hover {
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.9);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            max-height: 90vh; /* Limit height to prevent overflow on smaller screens */
+            max-width: 90vw; /* Limit width to prevent overflow on smaller screens */
+            object-fit: contain; /* Ensure image fits within bounds */
+            cursor: pointer; /* Indicate that the modal image is clickable */
+        }
+        /* Spinner animation */
+        .spinner {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid #ffffff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            z-index: 50; /* Spinner slightly above image, below close button */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Active button styling (if sub-galleries were to be added later) */
+        .nav-button.active {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 2px solid; /* Add a border to active button */
+        }
+        /* Styling for the main content background */
+        .gallery-section-bg {
+            background-color: #1a1a1a; /* Darker gray for content background */
+        }
+        /* Specific active styles for different button colors */
+        .nav-button.bg-blue-500.active { border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-black min-h-screen flex flex-col items-center py-8">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-7xl flex justify-between items-center mb-12 p-4 bg-gray-900 rounded-xl shadow-lg">
+        <h1 id="mainTitle" class="text-3xl sm:text-4xl font-extrabold text-red-600">Rugby (04/12/2025) Photo Gallery</h1>
+        <nav class="flex space-x-4">
+            <a href="index.html" class="flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition duration-300 transform hover:scale-105">
+                <i class="fas fa-home"></i>
+                <span class="hidden sm:inline">Home</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- Sub-gallery Navigation (Optional, can be removed if only one gallery) -->
+    <nav class="mb-10 p-4 bg-gray-900 rounded-xl shadow-xl flex flex-wrap justify-center gap-4 hidden">
+        <!-- Buttons would be dynamically added here if sub-galleries were implemented -->
+    </nav>
+
+    <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 max-w-7xl mx-auto gallery-section-bg rounded-xl shadow-2xl">
+        <!-- Images will be dynamically loaded here -->
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal opacity-0">
+        <div class="relative flex flex-col items-center justify-center w-full h-full">
+            <button id="closeModal" class="absolute top-4 right-4 text-white text-4xl p-2 rounded-full bg-gray-700 bg-opacity-50 hover:bg-opacity-75 focus:outline-none z-55" aria-label="Close image modal">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div id="loadingSpinner" class="spinner absolute z-50 hidden"></div>
+
+            <img id="modalImage" src="" alt="Gallery Image" class="modal-content rounded-lg shadow-lg">
+
+            <div id="clickToSourceText" class="absolute bottom-8 text-white text-lg bg-black bg-opacity-50 px-4 py-2 rounded-lg hidden transition-opacity duration-300 opacity-0">
+                Click image to view host page
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageUrls = [
+            "https://i.postimg.cc/1Rkb9r2D/DSC-0030.jpg",
+            "https://i.postimg.cc/c1gVyb9s/DSC-0031.jpg",
+            "https://i.postimg.cc/jSK9fds5/DSC-0033.jpg",
+            "https://i.postimg.cc/NFHV6K9y/DSC-0036.jpg",
+            "https://i.postimg.cc/C1Z60R4v/DSC-0037.jpg",
+            "https://i.postimg.cc/yN8bfQ3C/DSC-0039.jpg",
+            "https://i.postimg.cc/021Hg2Kf/DSC-0040.jpg",
+            "https://i.postimg.cc/8z1K5KHf/DSC-0041.jpg",
+            "https://i.postimg.cc/PxBV5d3d/DSC-0042.jpg",
+            "https://i.postimg.cc/GtG7B6VG/DSC-0043.jpg",
+            "https://i.postimg.cc/Y2Wyym00/DSC-0044.jpg",
+            "https://i.postimg.cc/vH72GFWd/DSC-0045.jpg",
+            "https://i.postimg.cc/52nPFB77/DSC-0049.jpg",
+            "https://i.postimg.cc/8CcZd7x1/DSC-0050.jpg",
+            "https://i.postimg.cc/ZqQVwTh6/DSC-0051.jpg",
+            "https://i.postimg.cc/J0VKWP0n/DSC-0052.jpg",
+            "https://i.postimg.cc/3Jh9SSzf/DSC-0053.jpg",
+            "https://i.postimg.cc/SR6dQCYG/DSC-0054.jpg",
+            "https://i.postimg.cc/BZHMC971/DSC-0055.jpg",
+            "https://i.postimg.cc/FHspmfrj/DSC-0059.jpg",
+            "https://i.postimg.cc/0Nh0pcpf/DSC-0060.jpg",
+            "https://i.postimg.cc/k48FwKsd/DSC-0061.jpg",
+            "https://i.postimg.cc/5tXmYZFy/DSC-0063.jpg",
+            "https://i.postimg.cc/pTT7G07n/DSC-00635-11.jpg",
+            "https://i.postimg.cc/nzPW64bS/DSC-00635-15.jpg",
+            "https://i.postimg.cc/pXFNM6df/DSC-00635-2.jpg",
+            "https://i.postimg.cc/t43LYnW7/DSC-00635-6.jpg",
+            "https://i.postimg.cc/GmwWLxBZ/DSC-00635-7.jpg",
+            "https://i.postimg.cc/xd9BHj35/DSC-00635-9.jpg",
+            "https://i.postimg.cc/SRfLb4HT/DSC-0064.jpg",
+            "https://i.postimg.cc/QNQJTgVQ/DSC-0065.jpg",
+            "https://i.postimg.cc/MHqRD4Xy/DSC-0068.jpg",
+            "https://i.postimg.cc/NfGm2W3t/DSC-0069.jpg",
+            "https://i.postimg.cc/zfHnXK9R/DSC-0069-01.jpg",
+            "https://i.postimg.cc/26pnq3D9/DSC-0069-02.jpg",
+            "https://i.postimg.cc/63dnCw6W/DSC-0070.jpg",
+            "https://i.postimg.cc/wxQDv6bF/DSC-0071.jpg",
+            "https://i.postimg.cc/J0xXdqBS/DSC-0072.jpg",
+            "https://i.postimg.cc/fTHXc8s9/DSC-0073.jpg",
+            "https://i.postimg.cc/6QZvNwvr/DSC-0077.jpg",
+            "https://i.postimg.cc/x1hz7qcj/DSC-0078.jpg",
+            "https://i.postimg.cc/26fBkJQP/DSC-0079.jpg",
+            "https://i.postimg.cc/wMqyJmb2/DSC-0080.jpg",
+            "https://i.postimg.cc/4dbHm5wn/DSC-0081.jpg",
+            "https://i.postimg.cc/cCFKcLpS/DSC-0082.jpg",
+            "https://i.postimg.cc/XNLyWspz/DSC-0083.jpg",
+            "https://i.postimg.cc/P5pLmhKg/DSC-0084.jpg",
+            "https://i.postimg.cc/qMZhhgcc/DSC-0085.jpg",
+            "https://i.postimg.cc/fTbSRYdT/DSC-0086.jpg",
+            "https://i.postimg.cc/sgkMm8Nv/DSC-0087.jpg",
+            "https://i.postimg.cc/rp5KPJBg/DSC-0087-01.jpg",
+            "https://i.postimg.cc/0jyjrqbH/DSC-0088.jpg",
+            "https://i.postimg.cc/d1BDq0ty/DSC-0089.jpg",
+            "https://i.postimg.cc/3NfRvbGr/DSC-0090.jpg",
+            "https://i.postimg.cc/T2thFhs8/DSC-0092.jpg",
+            "https://i.postimg.cc/X7hqNm3Q/DSC-0098.jpg",
+            "https://i.postimg.cc/pXyyHRNm/DSC-0099.jpg",
+            "https://i.postimg.cc/Qd188Mfd/DSC-0100.jpg",
+            "https://i.postimg.cc/T3DwK03G/DSC-0101.jpg",
+            "https://i.postimg.cc/rmQyBYQG/DSC-0102.jpg",
+            "https://i.postimg.cc/3Nq8R0Md/DSC-0103.jpg",
+            "https://i.postimg.cc/ZYsKj294/DSC-0104.jpg",
+            "https://i.postimg.cc/sDtfCW9L/DSC-0105.jpg",
+            "https://i.postimg.cc/tC1RckPP/DSC-0108.jpg",
+            "https://i.postimg.cc/8CG1jVYB/DSC-0110.jpg",
+            "https://i.postimg.cc/ydYsyysD/DSC-0118.jpg",
+            "https://i.postimg.cc/tTSySn42/DSC-0119.jpg",
+            "https://i.postimg.cc/nL1nmPb8/DSC-0121.jpg",
+            "https://i.postimg.cc/Vv2w1yMt/DSC-0124.jpg",
+            "https://i.postimg.cc/1X8SLRgP/DSC-0125.jpg",
+            "https://i.postimg.cc/BZz42Fyv/DSC-0126.jpg",
+            "https://i.postimg.cc/m2FRjDfy/DSC-0127.jpg",
+            "https://i.postimg.cc/6pJKmXBJ/DSC-0128.jpg",
+            "https://i.postimg.cc/yN7H7yJL/DSC-0131.jpg",
+            "https://i.postimg.cc/QMSrCK1h/DSC-0132.jpg",
+            "https://i.postimg.cc/9MMH7XYT/DSC-0133.jpg",
+            "https://i.postimg.cc/D099Hrkd/DSC-0134.jpg",
+            "https://i.postimg.cc/yY9xdndK/DSC-0135.jpg",
+            "https://i.postimg.cc/XNtX4tnx/DSC-0136.jpg",
+            "https://i.postimg.cc/QxpNst4x/DSC-0137.jpg",
+            "https://i.postimg.cc/4xgdht79/DSC-0138.jpg",
+            "https://i.postimg.cc/cJD4jbDR/DSC-0140.jpg",
+            "https://i.postimg.cc/sg42PX70/DSC-0141.jpg",
+            "https://i.postimg.cc/TwpYXJSZ/DSC-0142.jpg",
+            "https://i.postimg.cc/cH2118G6/DSC-0145.jpg",
+            "https://i.postimg.cc/02g5LmCB/DSC-0146.jpg",
+            "https://i.postimg.cc/8zNpCS9d/DSC-0147.jpg",
+            "https://i.postimg.cc/y63YQn0R/DSC-0148.jpg",
+            "https://i.postimg.cc/7Z9xGRrF/DSC-0149.jpg",
+            "https://i.postimg.cc/c130MCNM/DSC-0150.jpg",
+            "https://i.postimg.cc/sDRynzjF/DSC-0151.jpg",
+            "https://i.postimg.cc/vZ0sH6WM/DSC-0152.jpg",
+            "https://i.postimg.cc/mDzRn214/DSC-0153.jpg",
+            "https://i.postimg.cc/c4MW2zCv/DSC-0155.jpg",
+            "https://i.postimg.cc/MG4J12PF/DSC-0156.jpg",
+            "https://i.postimg.cc/6pWKXh4Y/DSC-0157.jpg",
+            "https://i.postimg.cc/cJ6NK4m3/DSC-0160.jpg",
+            "https://i.postimg.cc/MTQ2DPgK/DSC-0161.jpg",
+            "https://i.postimg.cc/FzXtnbQb/DSC-0162.jpg",
+            "https://i.postimg.cc/ZKZt8LH4/DSC-0164.jpg",
+            "https://i.postimg.cc/D0QVVW29/DSC-0165.jpg",
+            "https://i.postimg.cc/MZ1JfLy9/DSC-0167.jpg",
+            "https://i.postimg.cc/gkD9N6tR/DSC-0169.jpg",
+            "https://i.postimg.cc/BnQryQRz/DSC-0171.jpg",
+            "https://i.postimg.cc/HkZqC1gk/DSC-0174.jpg",
+            "https://i.postimg.cc/qBsWv3TY/DSC-0177.jpg",
+            "https://i.postimg.cc/yNDw1p1X/DSC-0178.jpg",
+            "https://i.postimg.cc/rp77KGz6/DSC-0179.jpg",
+            "https://i.postimg.cc/cHY2YK8v/DSC-0181.jpg",
+            "https://i.postimg.cc/Hs3KQ1j9/DSC-0182.jpg",
+            "https://i.postimg.cc/xdN4Dk56/DSC-0185.jpg",
+            "https://i.postimg.cc/tT0mXXmp/DSC-0186.jpg",
+            "https://i.postimg.cc/Gm555PFB/DSC-0187.jpg",
+            "https://i.postimg.cc/4dz2yrrt/DSC-0192.jpg",
+            "https://i.postimg.cc/qq4b31TF/DSC-0193.jpg",
+            "https://i.postimg.cc/rsjhC5yw/DSC-0194.jpg",
+            "https://i.postimg.cc/y6yrHChC/DSC-0195.jpg",
+            "https://i.postimg.cc/CK8mr3Mt/DSC-0196.jpg",
+            "https://i.postimg.cc/rwKhxdBq/DSC-0197.jpg",
+            "https://i.postimg.cc/0yFVfkvD/DSC-0199.jpg",
+            "https://i.postimg.cc/hjqMk2fG/DSC-0200.jpg",
+            "https://i.postimg.cc/j2MXJKvW/DSC-0201.jpg",
+            "https://i.postimg.cc/W36ST0kw/DSC-0202.jpg",
+            "https://i.postimg.cc/G3KzfJrc/DSC-0203.jpg",
+            "https://i.postimg.cc/PJXyxNbs/DSC-0204.jpg",
+            "https://i.postimg.cc/jdjvYwdy/DSC-0207.jpg",
+            "https://i.postimg.cc/T3L9hzbw/DSC-0208.jpg",
+            "https://i.postimg.cc/zXP7zzV6/DSC-0209.jpg",
+            "https://i.postimg.cc/rwB94fG9/DSC-0212.jpg",
+            "https://i.postimg.cc/3w2FF2nQ/DSC-0214.jpg",
+            "https://i.postimg.cc/V61BG5Vr/DSC-0217.jpg",
+            "https://i.postimg.cc/Rhp7ZdVK/DSC-0218.jpg",
+            "https://i.postimg.cc/9MpPvV6x/DSC-0220.jpg",
+            "https://i.postimg.cc/43vp9sxJ/DSC-0224.jpg",
+            "https://i.postimg.cc/LXNfxDPw/DSC-0225.jpg",
+            "https://i.postimg.cc/J0FXLhPQ/DSC-0226.jpg",
+            "https://i.postimg.cc/4dJVvqYp/DSC-0231.jpg",
+            "https://i.postimg.cc/D00GHGdZ/DSC-0233.jpg",
+            "https://i.postimg.cc/bNKnVsGy/DSC-0234.jpg",
+            "https://i.postimg.cc/wvfyXv8d/DSC-0236.jpg",
+            "https://i.postimg.cc/cJc8JhFC/DSC-0237.jpg",
+            "https://i.postimg.cc/rsDdQkMR/DSC-0238.jpg",
+            "https://i.postimg.cc/G2hTTDfQ/DSC-0239.jpg",
+            "https://i.postimg.cc/yx2DGb8Q/DSC-0241.jpg",
+            "https://i.postimg.cc/9XkwzrYd/DSC-0246.jpg",
+            "https://i.postimg.cc/jSHD8v0c/DSC-0249.jpg",
+            "https://i.postimg.cc/Z5t9F2g0/DSC-0255.jpg",
+            "https://i.postimg.cc/fT0tdD86/DSC-0256.jpg",
+            "https://i.postimg.cc/xCCq12kp/DSC-0257.jpg",
+            "https://i.postimg.cc/LsmnGfmp/DSC-0258.jpg",
+            "https://i.postimg.cc/mrVt4DrF/DSC-0261.jpg",
+            "https://i.postimg.cc/NMzFyzms/DSC-0262.jpg",
+            "https://i.postimg.cc/L5gXj33z/DSC-0263.jpg",
+            "https://i.postimg.cc/NLh0D2dZ/DSC-0264.jpg",
+            "https://i.postimg.cc/G34JM0Mj/DSC-0265.jpg",
+            "https://i.postimg.cc/QNvgw6wZ/DSC-0266.jpg",
+            "https://i.postimg.cc/X7FKbf6G/DSC-0267.jpg",
+            "https://i.postimg.cc/qvTsMNpm/DSC-0269.jpg",
+            "https://i.postimg.cc/cJ1fwPgw/DSC-0270.jpg",
+            "https://i.postimg.cc/CxsjZw1w/DSC-0271.jpg",
+            "https://i.postimg.cc/PxPZFZMq/DSC-0272.jpg",
+            "https://i.postimg.cc/MGsVDtV4/DSC-0273.jpg",
+            "https://i.postimg.cc/NMSThMNk/DSC-0276.jpg",
+            "https://i.postimg.cc/J0XXRLvV/DSC-0278.jpg",
+            "https://i.postimg.cc/T25gVVw7/DSC-0285.jpg",
+            "https://i.postimg.cc/PrmDcd11/DSC-0292.jpg",
+            "https://i.postimg.cc/Gh0Yq4Tc/DSC-0296.jpg",
+            "https://i.postimg.cc/3xYGQzZV/DSC-0297.jpg",
+            "https://i.postimg.cc/s22ZvSqJ/DSC-0298.jpg",
+            "https://i.postimg.cc/HLP85nC1/DSC-0299.jpg",
+            "https://i.postimg.cc/SxdMSVTs/DSC-0300.jpg",
+            "https://i.postimg.cc/C1BB40FB/DSC-0301.jpg",
+            "https://i.postimg.cc/G2WB7f2M/DSC-0302.jpg",
+            "https://i.postimg.cc/wMD1SkR9/DSC-0304.jpg",
+            "https://i.postimg.cc/dQCZkJHg/DSC-0306.jpg",
+            "https://i.postimg.cc/FsQd0wwz/DSC-0307.jpg",
+            "https://i.postimg.cc/xTyk5tSR/DSC-0308.jpg",
+            "https://i.postimg.cc/pLWm6zWt/DSC-0309.jpg",
+            "https://i.postimg.cc/8zZ7Qccf/DSC-0315.jpg",
+            "https://i.postimg.cc/7Lbfx4Js/DSC-0316.jpg",
+            "https://i.postimg.cc/rpbzsHS8/DSC-0319.jpg",
+            "https://i.postimg.cc/G2ytyjQv/DSC-0320.jpg",
+            "https://i.postimg.cc/1X1tcNC2/DSC-0321.jpg",
+            "https://i.postimg.cc/2yd5H8g6/DSC-0323.jpg",
+            "https://i.postimg.cc/xjLqjtq2/DSC-0325.jpg",
+            "https://i.postimg.cc/wBtTCknn/DSC-0326.jpg",
+            "https://i.postimg.cc/jdX5P2z3/DSC-0327.jpg",
+            "https://i.postimg.cc/bN8rZk22/DSC-0328.jpg",
+            "https://i.postimg.cc/RZpZpYpc/DSC-0333.jpg",
+            "https://i.postimg.cc/W4QbTkvz/DSC-0341.jpg",
+            "https://i.postimg.cc/nzBVzhFk/DSC-0344.jpg",
+            "https://i.postimg.cc/3NZKXfD0/DSC-0345.jpg",
+            "https://i.postimg.cc/3RX7hf1f/DSC-0346.jpg",
+            "https://i.postimg.cc/HspWYmfw/DSC-0355.jpg",
+            "https://i.postimg.cc/PfbrnJFf/DSC-0357.jpg",
+            "https://i.postimg.cc/LsZ2C81p/DSC-0358.jpg",
+            "https://i.postimg.cc/1thPL1GN/DSC-0359.jpg",
+            "https://i.postimg.cc/tJ9b4dmq/DSC-0362.jpg",
+            "https://i.postimg.cc/prkHh9gD/DSC-0363.jpg",
+            "https://i.postimg.cc/sfJy08vv/DSC-0365.jpg",
+            "https://i.postimg.cc/655ws0vz/DSC-0366.jpg",
+            "https://i.postimg.cc/9F82c7P2/DSC-0368.jpg",
+            "https://i.postimg.cc/nhXJrhTD/DSC-0369.jpg",
+            "https://i.postimg.cc/t48HxGmm/DSC-0370.jpg",
+            "https://i.postimg.cc/6QRxVbk6/DSC-0371.jpg",
+            "https://i.postimg.cc/cHBq2g1V/DSC-0372.jpg",
+            "https://i.postimg.cc/d1YP5mF2/DSC-0373.jpg",
+            "https://i.postimg.cc/C5Myghzd/DSC-0375.jpg",
+            "https://i.postimg.cc/tJBKRKxk/DSC-0377.jpg",
+            "https://i.postimg.cc/CL1yrx3Q/DSC-0378.jpg",
+            "https://i.postimg.cc/fW5nv9rd/DSC-0381.jpg",
+            "https://i.postimg.cc/dtSbbKvt/DSC-0386.jpg",
+            "https://i.postimg.cc/7ZGFDQY1/DSC-0393.jpg",
+            "https://i.postimg.cc/wjCSBc7C/DSC-0394.jpg",
+            "https://i.postimg.cc/Pxh9WXbK/DSC-0398.jpg",
+            "https://i.postimg.cc/MG1gfMBv/DSC-0399.jpg",
+            "https://i.postimg.cc/76VcXFm4/DSC-0400.jpg",
+            "https://i.postimg.cc/kGgHHTpb/DSC-0402.jpg",
+            "https://i.postimg.cc/fyqPQYGg/DSC-0405.jpg",
+            "https://i.postimg.cc/kMTzSd2F/DSC-0406.jpg",
+            "https://i.postimg.cc/PrNczFZG/DSC-0410.jpg",
+            "https://i.postimg.cc/rFbHhCCD/DSC-0418.jpg",
+            "https://i.postimg.cc/7LrW4HRD/DSC-0421.jpg",
+            "https://i.postimg.cc/9fPNQ339/DSC-0422.jpg",
+            "https://i.postimg.cc/Gmy568qq/DSC-0424.jpg",
+            "https://i.postimg.cc/LXHQqyRb/DSC-0425.jpg",
+            "https://i.postimg.cc/NMpJR1jf/DSC-0426.jpg",
+            "https://i.postimg.cc/x88s5cXG/DSC-0427.jpg",
+            "https://i.postimg.cc/ZnQwM4NG/DSC-0428.jpg",
+            "https://i.postimg.cc/MZ33TbL9/DSC-0430.jpg",
+            "https://i.postimg.cc/qMtbC6V4/DSC-0431.jpg",
+            "https://i.postimg.cc/tCLrdRpP/DSC-0432.jpg",
+            "https://i.postimg.cc/qvy11fvF/DSC-0433.jpg",
+            "https://i.postimg.cc/W4VXK9D1/DSC-0434.jpg",
+            "https://i.postimg.cc/CK4mVjDH/DSC-0435.jpg",
+            "https://i.postimg.cc/C1LJMzsy/DSC-0436.jpg",
+            "https://i.postimg.cc/76s95wK5/DSC-0437.jpg",
+            "https://i.postimg.cc/wM1VJZr0/DSC-0438.jpg",
+            "https://i.postimg.cc/br4RRLc8/DSC-0439.jpg",
+            "https://i.postimg.cc/mZnVRZcq/DSC-0452.jpg",
+            "https://i.postimg.cc/L6ZDsdLs/DSC-0455.jpg",
+            "https://i.postimg.cc/W1G7MM9L/DSC-0456.jpg",
+            "https://i.postimg.cc/HkD2cS99/DSC-0457.jpg",
+            "https://i.postimg.cc/cJdBTrjK/DSC-0458.jpg",
+            "https://i.postimg.cc/TPQqsTMt/DSC-0459.jpg",
+            "https://i.postimg.cc/qRRXVWp4/DSC-0460.jpg",
+            "https://i.postimg.cc/QVLp7t1d/DSC-0461.jpg",
+            "https://i.postimg.cc/tTMdXDgP/DSC-0462.jpg",
+            "https://i.postimg.cc/jqDmyFPp/DSC-0463.jpg",
+            "https://i.postimg.cc/Pf0cyQMP/DSC-0464.jpg",
+            "https://i.postimg.cc/4Nt0SH8w/DSC-0465.jpg",
+            "https://i.postimg.cc/fRNPnWps/DSC-0466.jpg",
+            "https://i.postimg.cc/DwPM2k3X/DSC-0467.jpg",
+            "https://i.postimg.cc/ZqYDn7JD/DSC-0471.jpg",
+            "https://i.postimg.cc/nLdSD4zV/DSC-0472.jpg",
+            "https://i.postimg.cc/0QbWdzMY/DSC-0473.jpg",
+            "https://i.postimg.cc/Y0FdZTxj/DSC-0474.jpg",
+            "https://i.postimg.cc/sXqnn37t/DSC-0475.jpg",
+            "https://i.postimg.cc/v8x246dM/DSC-0478.jpg",
+            "https://i.postimg.cc/pXNGzX2j/DSC-0479.jpg",
+            "https://i.postimg.cc/zXndjZBc/DSC-0480.jpg",
+            "https://i.postimg.cc/CxScrPnL/DSC-0482.jpg",
+            "https://i.postimg.cc/4d7PHjqw/DSC-0483.jpg",
+            "https://i.postimg.cc/s22wsMJk/DSC-0484.jpg",
+            "https://i.postimg.cc/VkgDxqX9/DSC-0485.jpg",
+            "https://i.postimg.cc/fbg5LM2J/DSC-0486.jpg",
+            "https://i.postimg.cc/LXcTtNMS/DSC-0487.jpg",
+            "https://i.postimg.cc/QCcq01XT/DSC-0488.jpg",
+            "https://i.postimg.cc/XN5xjSwY/DSC-0489.jpg",
+            "https://i.postimg.cc/yYzjWQPX/DSC-0490.jpg",
+            "https://i.postimg.cc/gkqDhVt9/DSC-0491.jpg",
+            "https://i.postimg.cc/FHrxVYwY/DSC-0492.jpg",
+            "https://i.postimg.cc/vZ0tqQd3/DSC-0493.jpg",
+            "https://i.postimg.cc/CKdH9WhY/DSC-0494.jpg",
+            "https://i.postimg.cc/zBgwGKHc/DSC-0495.jpg",
+            "https://i.postimg.cc/g05qpNjh/DSC-0500.jpg",
+            "https://i.postimg.cc/MH0yywD0/DSC-0510.jpg",
+            "https://i.postimg.cc/Hn1wcnQs/DSC-0511.jpg",
+            "https://i.postimg.cc/VsXBy98S/DSC-0513.jpg",
+            "https://i.postimg.cc/wTVXM63g/DSC-0514.jpg",
+            "https://i.postimg.cc/x11KbWbH/DSC-0516.jpg",
+            "https://i.postimg.cc/4x2pvBz0/DSC-0517.jpg",
+            "https://i.postimg.cc/rpdxfxjw/DSC-0518.jpg",
+            "https://i.postimg.cc/hvnm4wBX/DSC-0519.jpg",
+            "https://i.postimg.cc/FK2c8zCg/DSC-0520.jpg",
+            "https://i.postimg.cc/PxYZjHBG/DSC-0521.jpg",
+            "https://i.postimg.cc/HW05vpwX/DSC-0522.jpg",
+            "https://i.postimg.cc/kGyb2cJf/DSC-0523.jpg",
+            "https://i.postimg.cc/sDVWttm8/DSC-0524.jpg",
+            "https://i.postimg.cc/j5b2y7k9/DSC-0525.jpg",
+            "https://i.postimg.cc/zvfJkSwd/DSC-0526.jpg",
+            "https://i.postimg.cc/kXznxS2c/DSC-0527.jpg",
+            "https://i.postimg.cc/0NqP4qdK/DSC-0528.jpg",
+            "https://i.postimg.cc/25FrRX2c/DSC-0529.jpg",
+            "https://i.postimg.cc/B6Ssqczq/DSC-0530.jpg",
+            "https://i.postimg.cc/C1c0dnyb/DSC-0531.jpg",
+            "https://i.postimg.cc/NFLcXGYS/DSC-0532.jpg",
+            "https://i.postimg.cc/d3XKjMV1/DSC-0533.jpg",
+            "https://i.postimg.cc/y6rBHRyH/DSC-0534.jpg",
+            "https://i.postimg.cc/Qx9DxMfW/DSC-0543.jpg",
+            "https://i.postimg.cc/K8tyBHSG/DSC-0546.jpg",
+            "https://i.postimg.cc/kX0mVdHY/DSC-0547.jpg",
+            "https://i.postimg.cc/FKmXZVNj/DSC-0548.jpg",
+            "https://i.postimg.cc/LsTK0g8G/DSC-0549.jpg",
+            "https://i.postimg.cc/tT4Q0R1J/DSC-0550.jpg",
+            "https://i.postimg.cc/pTcNPN8Z/DSC-0551.jpg",
+            "https://i.postimg.cc/C5R31vsV/DSC-0552.jpg",
+            "https://i.postimg.cc/T1BZWrt5/DSC-0553.jpg",
+            "https://i.postimg.cc/44MCMgX4/DSC-0554.jpg",
+            "https://i.postimg.cc/3w9VZMLT/DSC-0557.jpg",
+            "https://i.postimg.cc/66MLcWLq/DSC-222-1.jpg",
+            "https://i.postimg.cc/4yxvGqZX/DSC-222-2.jpg",
+            "https://i.postimg.cc/bNd0F73T/DSC-222-3.jpg",
+            "https://i.postimg.cc/X7hKMsP0/DSC-222-4.jpg",
+            "https://i.postimg.cc/dVy2J8MZ/DSC-222-5.jpg",
+            "https://i.postimg.cc/hGR9vfgy/DSC-222-6.jpg",
+            "https://i.postimg.cc/WzqyjdsN/hi.png"
+        ];
+
+        let currentImageIndex = 0; // Tracks the currently displayed image in the modal
+
+        // Get DOM elements
+        const mainTitle = document.getElementById('mainTitle');
+        const galleryDiv = document.getElementById('gallery');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModalBtn = document.getElementById('closeModal');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const clickToSourceText = document.getElementById('clickToSourceText');
+
+        /**
+         * Populates the gallery with thumbnail images.
+         */
+        function loadGalleryImages() {
+            galleryDiv.innerHTML = ''; // Clear existing images
+            
+            if (imageUrls.length === 0) {
+                galleryDiv.innerHTML = '<p class="text-center text-gray-500 text-lg col-span-full">No images found for this gallery.</p>';
+                return;
+            }
+
+            // Populate the gallery grid
+            imageUrls.forEach((url, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'relative group rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `Rugby Image ${index + 1}`;
+                img.className = 'w-full h-48 object-cover gallery-image transform group-hover:scale-105 rounded-lg';
+                img.loading = 'lazy';
+                img.onerror = function() {
+                    this.src = 'https://placehold.co/400x300/cccccc/333333?text=Image+Error';
+                    this.alt = 'Image failed to load';
+                    console.error(`Error loading image: ${url}`);
+                };
+
+                const overlay = document.createElement('div');
+                overlay.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center';
+                const viewIcon = document.createElement('i');
+                viewIcon.className = 'fas fa-eye text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300';
+                overlay.appendChild(viewIcon);
+
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(overlay);
+                imgContainer.addEventListener('click', () => openModal(index));
+                galleryDiv.appendChild(imgContainer);
+            });
+        }
+
+        /**
+         * Opens the image modal and displays the image at the given index.
+         * @param {number} index - The index of the image to display.
+         */
+        function openModal(index) {
+            currentImageIndex = index;
+            
+            loadingSpinner.classList.remove('hidden');
+            modalImage.classList.add('hidden');
+            clickToSourceText.classList.add('hidden', 'opacity-0');
+
+            setTimeout(() => {
+                modalImage.src = imageUrls[currentImageIndex]; 
+                modalImage.onerror = function() {
+                    this.src = 'https://placehold.co/800x600/cccccc/333333?text=Image+Error';
+                    this.alt = 'Image failed to load';
+                    loadingSpinner.classList.add('hidden');
+                    modalImage.classList.remove('hidden');
+                    console.error(`Error loading modal image: ${imageUrls[currentImageIndex]}`);
+                };
+
+                modalImage.onload = function() {
+                    loadingSpinner.classList.add('hidden');
+                    modalImage.classList.remove('hidden');
+                    setTimeout(() => {
+                        clickToSourceText.classList.remove('hidden');
+                        setTimeout(() => clickToSourceText.classList.remove('opacity-0'), 10);
+                    }, 200);
+                };
+            }, 50);
+
+            imageModal.classList.remove('hidden');
+            setTimeout(() => {
+                imageModal.classList.remove('opacity-0');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        /**
+         * Closes the image modal.
+         */
+        function closeModal() {
+            imageModal.classList.add('opacity-0');
+            setTimeout(() => {
+                imageModal.classList.add('hidden');
+                modalImage.src = '';
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        /**
+         * Displays the next image in the modal.
+         */
+        function showNextImage() {
+            currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+            openModal(currentImageIndex);
+        }
+
+        /**
+         * Displays the previous image in the modal.
+         */
+        function showPrevImage() {
+            currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+            openModal(currentImageIndex);
+        }
+
+        // Event Listeners for modal
+        closeModalBtn.addEventListener('click', closeModal);
+
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) { 
+                closeModal();
+            }
+        });
+
+        modalImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (modalImage.src && !modalImage.classList.contains('hidden')) {
+                const parts = modalImage.src.split('/');
+                const imageId = parts[parts.length - 2]; 
+
+                if (imageId && imageId.length > 0) {
+                    const postimgPageUrl = `https://postimg.cc/${imageId}`;
+                    window.open(postimgPageUrl, '_blank');
+                } else {
+                    console.error('Could not extract image ID from URL:', modalImage.src);
+                    window.open(modalImage.src, '_blank');
+                }
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!imageModal.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') {
+                    showNextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    showPrevImage();
+                } else if (e.key === 'Escape') {
+                    closeModal();
+                }
+            }
+        });
+
+        // Touch event listeners for swiping on the modal image
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        modalImage.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        modalImage.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].clientX;
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold) {
+                showNextImage();
+            } else if (touchEndX > touchStartX + swipeThreshold) {
+                showPrevImage();
+            }
+        });
+
+        // Initialize the gallery on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGalleryImages(); // Load all images directly as there are no sub-galleries
+        });
+    </script>
+</body>
+</html>
