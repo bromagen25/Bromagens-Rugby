@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Burbon Country 10s Photo Galleries</title>
+    <title>Bourbon Country 10s Photo Gallery</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -28,7 +28,6 @@
             max-width: 90vw; /* Limit width to prevent overflow on smaller screens */
             object-fit: contain; /* Ensure image fits within bounds */
             cursor: pointer; /* Indicate that the modal image is clickable */
-            /* Removed z-index from modal-content as it's contained within z-50 modal */
         }
         /* Spinner animation */
         .spinner {
@@ -54,17 +53,33 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center py-8">
 
-    <h1 id="mainTitle" class="text-4xl font-extrabold text-gray-800 mb-6 rounded-lg p-4 bg-white shadow-lg text-center">Burbon Country 10s Photo Galleries</h1>
+    <!-- Header Section -->
+    <header class="w-full max-w-7xl flex justify-between items-center mb-12 p-4 bg-gray-900 rounded-xl shadow-lg">
+        <h1 id="mainTitle" class="text-3xl sm:text-4xl font-extrabold text-red-600">Bourbon Country 10s Gallery</h1>
+        <nav class="flex space-x-4">
+            <a href="index.html" class="flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition duration-300 transform hover:scale-105">
+                <i class="fas fa-home"></i>
+                <span class="hidden sm:inline">Home</span>
+            </a>
+            <!-- Share button functionality could be added here if needed for individual galleries -->
+            <!-- <button id="shareButton" class="flex items-center space-x-2 px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition duration-300 transform hover:scale-105">
+                <i class="fas fa-share-alt"></i>
+                <span class="hidden sm:inline">Share</span>
+            </button> -->
+        </nav>
+    </header>
 
+    <!-- Sub-gallery Navigation -->
     <nav class="mb-10 p-4 bg-white rounded-xl shadow-xl flex flex-wrap justify-center gap-4">
-        <button class="nav-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 active" data-gallery="Bourbon Country 10s Game 1">Game 1 Photos</button>
+        <button class="nav-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1" data-gallery="Bourbon Country 10s Game 1">Game 1 Photos</button>
         <button class="nav-button bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1" data-gallery="Bourbon Country 10s Game 2">Game 2 Photos</button>
         <button class="nav-button bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1" data-gallery="Bourbon Country 10s Game 3">Game 3 Photos</button>
         <button class="nav-button bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1" data-gallery="Bourbon Country 10s Team Photos">Team Photos</button>
     </nav>
 
     <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 max-w-7xl mx-auto bg-white rounded-xl shadow-2xl">
-        </div>
+        <!-- Images will be dynamically loaded here -->
+    </div>
 
     <div id="imageModal" class="fixed inset-0 flex items-center justify-center z-50 hidden modal opacity-0">
         <div class="relative flex flex-col items-center justify-center w-full h-full">
@@ -83,8 +98,8 @@
     </div>
 
     <script>
-        // Data structure containing all galleries
-        const allGalleriesData = {
+        // Data structure containing all sub-galleries for Bourbon Country 10s
+        const bourbon10sSubGalleries = {
             "Bourbon Country 10s Game 1": [
                 "https://i.postimg.cc/s2GRRZTG/DSC-0042.jpg",
                 "https://i.postimg.cc/fT5s7s3y/DSC-0043.jpg",
@@ -348,7 +363,7 @@
             ]
         };
 
-        let currentImageUrls = []; // This will hold the URLs for the currently active gallery
+        let currentImageUrls = []; // This will hold the URLs for the currently active sub-gallery
         let currentImageIndex = 0; // Tracks the currently displayed image in the modal
 
         // Get DOM elements
@@ -362,19 +377,25 @@
         const navButtons = document.querySelectorAll('.nav-button');
 
         /**
-         * Populates the gallery with thumbnail images for the given gallery data.
-         * @param {string} galleryName - The name of the gallery to load.
+         * Populates the gallery with thumbnail images for the given sub-gallery data.
+         * @param {string} subGalleryName - The name of the sub-gallery to load.
          */
-        function loadGallery(galleryName) {
-            console.log(`Loading gallery: ${galleryName}`); // Debugging: Confirm gallery load
-            // Update the main title
-            mainTitle.textContent = `${galleryName} Gallery`;
+        function loadSubGallery(subGalleryName) {
+            console.log(`Loading sub-gallery: ${subGalleryName}`); // Debugging: Confirm sub-gallery load
+            // Update the main title to reflect the current sub-gallery
+            mainTitle.textContent = `Bourbon Country 10s Gallery - ${subGalleryName.replace('Bourbon Country 10s ', '')}`;
 
             // Clear existing images
             galleryDiv.innerHTML = '';
             
-            // Set the current image URLs to the selected gallery's data
-            currentImageUrls = allGalleriesData[galleryName];
+            // Set the current image URLs to the selected sub-gallery's data
+            currentImageUrls = bourbon10sSubGalleries[subGalleryName];
+
+            // If no images found for the selected sub-gallery
+            if (!currentImageUrls || currentImageUrls.length === 0) {
+                galleryDiv.innerHTML = '<p class="text-center text-gray-500 text-lg col-span-full">No images found for this gallery.</p>';
+                return;
+            }
 
             // Populate the gallery grid
             currentImageUrls.forEach((url, index) => {
@@ -383,7 +404,7 @@
 
                 const img = document.createElement('img');
                 img.src = url;
-                img.alt = `${galleryName} Image ${index + 1}`; // Dynamic alt text
+                img.alt = `${subGalleryName} Image ${index + 1}`; // Dynamic alt text
                 img.className = 'w-full h-48 object-cover gallery-image transform group-hover:scale-105 rounded-lg';
                 img.loading = 'lazy'; // Lazy load images
                 img.onerror = function() {
@@ -406,7 +427,7 @@
 
             // Update active button styling
             navButtons.forEach(button => {
-                if (button.dataset.gallery === galleryName) {
+                if (button.dataset.gallery === subGalleryName) {
                     button.classList.add('active');
                 } else {
                     button.classList.remove('active');
@@ -431,7 +452,7 @@
 
             // Use a small timeout to ensure browser re-evaluates image load
             setTimeout(() => {
-                modalImage.src = currentImageUrls[currentImageIndex];
+                modalImage.src = currentImageUrls[currentImageIndex]; 
                 modalImage.onerror = function() {
                     this.src = 'https://placehold.co/800x600/cccccc/333333?text=Image+Error';
                     this.alt = 'Image failed to load';
@@ -502,13 +523,13 @@
         // Add a click listener to the modal background to close it
         imageModal.addEventListener('click', (e) => {
             // Only close if the click was directly on the modal background, not on the image or close button
-            if (e.target === imageModal) { // Only if clicked on the modal's div itself
+            if (e.target === imageModal) { 
                 console.log('Modal background clicked.');
                 closeModal();
             }
         });
 
-        // MODIFIED: This section now opens the Postimg.cc page for the image
+        // This section opens the Postimg.cc page for the image
         modalImage.addEventListener('click', (e) => {
             e.stopPropagation(); // Stop event from bubbling up to the modal background
             if (modalImage.src && !modalImage.classList.contains('hidden')) {
@@ -574,12 +595,12 @@
             navButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const galleryName = button.dataset.gallery;
-                    loadGallery(galleryName);
+                    loadSubGallery(galleryName); // Call loadSubGallery for internal navigation
                 });
             });
 
-            // Load the first gallery by default when the page loads
-            loadGallery("Bourbon Country 10s Game 1"); 
+            // Load the first sub-gallery by default when the page loads
+            loadSubGallery("Bourbon Country 10s Game 1"); 
         });
     </script>
 </body>
