@@ -100,9 +100,18 @@
                         card.href = gallery.link; // Link to the gallery HTML file
                         card.className = 'gallery-card bg-gray-800 rounded-lg shadow-md p-6 flex flex-col items-center text-center transform hover:scale-105 transition duration-300 border border-red-700';
                         
-                        // Use a placeholder image if no icon is provided
-                        const iconHtml = gallery.icon ? `<i class="${gallery.icon} text-red-500 text-5xl mb-4"></i>` : 
-                                       `<img src="https://placehold.co/100x100/333333/FF0000?text=Gallery" alt="Gallery Icon" class="w-24 h-24 object-contain mb-4 rounded-full border-2 border-red-600">`;
+                        let iconHtml;
+                        // Check if the icon property is a URL (starts with http) or a Font Awesome class
+                        if (gallery.icon && (gallery.icon.startsWith('http://') || gallery.icon.startsWith('https://'))) {
+                            // It's an image URL
+                            iconHtml = `<img src="${gallery.icon}" alt="${gallery.name} Icon" class="w-24 h-24 object-contain mb-4 rounded-full border-2 border-red-600">`;
+                        } else if (gallery.icon) {
+                            // It's a Font Awesome class
+                            iconHtml = `<i class="${gallery.icon} text-red-500 text-5xl mb-4"></i>`;
+                        } else {
+                            // No icon provided, use a generic placeholder
+                            iconHtml = `<img src="https://placehold.co/100x100/333333/FF0000?text=Gallery" alt="Gallery Icon" class="w-24 h-24 object-contain mb-4 rounded-full border-2 border-red-600">`;
+                        }
                         
                         card.innerHTML = `
                             ${iconHtml}
