@@ -43,20 +43,25 @@
             top: 0;
             width: 100%; /* Full width */
             height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
+            overflow: hidden; /* Prevent scrolling on modal itself */
             background-color: rgba(0, 0, 0, 0.9); /* Black w/ opacity */
             justify-content: center;
             align-items: center;
             padding: 20px;
             flex-direction: column; /* Arrange content vertically */
+            user-select: none; /* Prevent text selection on images */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
         }
         .modal-content {
             margin: auto;
             display: block;
             max-width: 90%;
-            max-height: 80%; /* Give space for the download message */
+            max-height: 80%; /* Give space for the download message and navigation */
             object-fit: contain; /* Ensure the image fits within the modal */
             border-radius: 0.75rem; /* Rounded corners */
+            position: relative; /* For positioning navigation arrows */
         }
         .close-button {
             position: absolute;
@@ -89,6 +94,35 @@
         .download-message:hover {
             background-color: #FF0000; /* Solid red on hover */
             color: #FFFFFF; /* White text on hover */
+        }
+        /* Navigation arrows */
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -50px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
+            -webkit-user-select: none;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001; /* Ensure arrows are above the image */
+        }
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+        .prev {
+            left: 0;
+            border-radius: 0 3px 3px 0;
+        }
+        .prev:hover, .next:hover {
+            background-color: rgba(0,0,0,0.8);
         }
     </style>
 </head>
@@ -1072,7 +1106,9 @@
     <!-- The Modal (Lightbox) -->
     <div id="myModal" class="modal">
         <span class="close-button">&times;</span>
+        <a class="prev">&#10094;</a>
         <img class="modal-content" id="img01">
+        <a class="next">&#10095;</a>
         <p id="downloadMessage" class="download-message">Tap here to download</p>
     </div>
 
@@ -1111,21 +1147,42 @@
             }
         });
 
-        // Get the modal, image, close button, and download message elements
+        // Get the modal, image, close button, download message, and navigation elements
         const modal = document.getElementById("myModal");
         const modalImg = document.getElementById("img01");
         const closeButton = document.getElementsByClassName("close-button")[0];
         const downloadMessage = document.getElementById("downloadMessage");
+        const prevButton = document.querySelector(".prev");
+        const nextButton = document.querySelector(".next");
 
         // Get all images in the photo grid
         const images = document.querySelectorAll('.photo-grid img');
+        let currentImageIndex = 0; // To keep track of the currently displayed image
+
+        // Function to show a specific image in the modal
+        function showImageInModal(index) {
+            if (index >= 0 && index < images.length) {
+                currentImageIndex = index;
+                modalImg.src = images[currentImageIndex].src; // Display thumbnail for quick load
+                modalImg.setAttribute('data-original', images[currentImageIndex].getAttribute('data-original')); // Store original link
+            }
+        }
+
+        // Function to show the next image
+        function showNextImage() {
+            showImageInModal(currentImageIndex + 1);
+        }
+
+        // Function to show the previous image
+        function showPrevImage() {
+            showImageInModal(currentImageIndex - 1);
+        }
 
         // Loop through all images and add click listeners to open the modal
-        images.forEach(img => {
+        images.forEach((img, index) => {
             img.addEventListener('click', function() {
                 modal.style.display = "flex"; // Use flex to center content
-                modalImg.src = this.src; // Display the clicked image in the modal
-                modalImg.setAttribute('data-original', this.getAttribute('data-original')); // Store original link
+                showImageInModal(index); // Show the clicked image
             });
         });
 
@@ -1141,6 +1198,51 @@
             }
         }
 
+        // Navigation button event listeners
+        prevButton.addEventListener('click', showPrevImage);
+        nextButton.addEventListener('click', showNextImage);
+
+        // Keyboard navigation (optional, but good for desktop)
+        document.addEventListener('keydown', function(e) {
+            if (modal.style.display === "flex") { // Only navigate if modal is open
+                if (e.key === "ArrowLeft") {
+                    showPrevImage();
+                } else if (e.key === "ArrowRight") {
+                    showNextImage();
+                }
+            }
+        });
+
+        // Swipe functionality for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const swipeThreshold = 50; // Minimum pixels for a swipe
+
+        modal.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        modal.addEventListener('touchmove', (e) => {
+            touchEndX = e.touches[0].clientX;
+        });
+
+        modal.addEventListener('touchend', () => {
+            if (modal.style.display === "flex") {
+                const swipeDistance = touchEndX - touchStartX;
+                if (swipeDistance > swipeThreshold) {
+                    // Swiped right (show previous image)
+                    showPrevImage();
+                } else if (swipeDistance < -swipeThreshold) {
+                    // Swiped left (show next image)
+                    showNextImage();
+                }
+            }
+            // Reset touch positions
+            touchStartX = 0;
+            touchEndX = 0;
+        });
+
+
         // When the user clicks on the "Tap here to download" message
         downloadMessage.addEventListener('click', function() {
             const originalLink = modalImg.getAttribute('data-original');
@@ -1148,7 +1250,7 @@
                 // Create a temporary link element
                 const downloadLink = document.createElement('a');
                 downloadLink.href = originalLink;
-                // Suggest a filename (optional, browser might override)
+                // Suggest a filename from the URL (e.g., DSC-0064.jpg)
                 downloadLink.download = originalLink.substring(originalLink.lastIndexOf('/') + 1);
                 document.body.appendChild(downloadLink);
                 downloadLink.click(); // Programmatically click the link to trigger download
