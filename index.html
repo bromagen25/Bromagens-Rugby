@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bromagens Rugby Photos</title>
+    <!-- Tailwind CSS CDN for easy styling and responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Black background */
+            color: #FF0000; /* Red text for general body */
+        }
+        /* Basic styling for the share button - can be enhanced */
+        .share-button {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .share-button:hover {
+            background-color: #7f1d1d; /* Darker red on hover */
+        }
+        /* Style for album cards */
+        .album-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .album-card:hover {
+            transform: translateY(-5px); /* Slight lift effect on hover */
+            box-shadow: 0 10px 20px rgba(255, 0, 0, 0.3); /* Red shadow */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Header Section -->
+    <header class="bg-gray-900 text-red-500 p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-red-500">Bromagens Rugby Photos</h1>
+            <nav class="flex space-x-4">
+                <a href="index.html" class="bg-red-700 hover:bg-red-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    Home
+                </a>
+                <button id="shareButton" class="share-button bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    Share
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area for Albums -->
+    <main class="flex-grow container mx-auto p-6">
+        <h2 class="text-4xl font-extrabold text-red-500 mb-8 text-center">Photo Albums</h2>
+
+        <!-- Album Grid -->
+        <div id="albumGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <!--
+                HOW TO ADD A NEW ALBUM:
+                1. Copy one of the <a>...</a> blocks below (after you add your first one).
+                2. Paste it below the existing album cards.
+                3. Change the 'href' attribute to the filename of your new album page (e.g., "new_game_album.html").
+                4. Update the 'src' attribute of the <img> tag to a cover image for your new album.
+                   You can use a placeholder like 'https://placehold.co/300x200/cccccc/333333?text=New+Album+Cover'
+                   or a real image link.
+                5. Update the text content of the <h3> and <p> tags to describe your new album.
+                6. Create the new album HTML file (e.g., "new_game_album.html") by copying and modifying "game_one.html".
+            -->
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-red-500 p-4 text-center mt-8 shadow-inner">
+        <p>&copy; 2024 Bromagens Rugby Photos. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Share functionality
+        document.getElementById('shareButton').addEventListener('click', () => {
+            if (navigator.share) {
+                // Use Web Share API if available
+                navigator.share({
+                    title: document.title,
+                    text: 'Check out Bromagens Rugby Photos!',
+                    url: window.location.href
+                }).then(() => {
+                    console.log('Page shared successfully');
+                }).catch((error) => {
+                    console.error('Error sharing:', error);
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                // Create a temporary input element to copy the URL
+                const dummyInput = document.createElement('input');
+                document.body.appendChild(dummyInput);
+                dummyInput.value = window.location.href;
+                dummyInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummyInput);
+
+                // Provide visual feedback to the user
+                const shareButton = document.getElementById('shareButton');
+                const originalText = shareButton.textContent;
+                shareButton.textContent = 'Link Copied!';
+                setTimeout(() => {
+                    shareButton.textContent = originalText;
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
